@@ -1,0 +1,148 @@
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+# This workflow lets you generate SLSA provenance file for your project.
+# The generation satisfies level 3 for the provenance requirements - see https://slsa.dev/spec/v0.1/requirements
+# The project is an initiative of the OpenSSF (openssf.org) and is developed at
+# https://github.com/slsa-framework/slsa-github-generator.
+# The provenance file can be verified using https://github.com/slsa-framework/slsa-verifier.
+# For more information about SLSA and how it improves the supply-chain, visit slsa.dev.
+
+name: SLSA generic generator
+on:
+  workflow_dispatch:
+  release:
+    types: [created]
+
+jobs:            - имя: Настройка Java JDK
+  используется: actions/setup-java@v5.1.0
+  с:
+    # Версия Java для настройки. Принимает полную версию Java или версию семантической версионной версии. Примеры поддерживаемого синтаксиса см. в файле README.
+    java-version: # необязательно
+    # Путь к файлу `.java-version`. Примеры поддерживаемого синтаксиса см. в файле README.
+    java-version-file: # необязательно
+    # Дистрибутивы Java. Список поддерживаемых дистрибутивов см. в файле README.
+    распределение:
+    # Тип пакета (jdk, jre, jdk+fx, jre+fx)
+    java-package: # необязательный параметр, по умолчанию используется jdk
+    # Архитектура пакета (по умолчанию используется архитектура исполнителя действий)
+    архитектура: # необязательно
+    # Путь к месту расположения сжатого JDK
+    jdkFile: # необязательный
+    # Установите этот параметр, если хотите, чтобы действие проверяло наличие последней доступной версии, соответствующей спецификации версии.
+    check-latest: # необязательно
+    # Идентификатор репозитория distributionManagement в файле pom.xml. По умолчанию — `github`.
+    server-id: # необязательный параметр, по умолчанию — github
+    # Имя переменной окружения для аутентификации в репозитории Apache Maven. По умолчанию используется $GITHUB_ACTOR
+    server-username: # необязательно, по умолчанию GITHUB_ACTOR
+    # Имя переменной окружения для пароля или токена аутентификации в репозитории Apache Maven. По умолчанию используется $GITHUB_TOKEN
+    server-password: # необязательно, по умолчанию GITHUB_TOKEN
+    # Путь к месту, куда будет записан файл settings.xml. По умолчанию — ~/.m2.
+    путь к настройкам: # необязательно
+    # Перезаписать файл settings.xml, если он существует. Значение по умолчанию — "true".
+    overwrite-settings: # необязательный параметр, по умолчанию true
+    # Закрытый ключ GPG для импорта. По умолчанию — пустая строка.
+    gpg-private-key: # необязательный
+    # Имя переменной окружения для парольной фразы закрытого ключа GPG. По умолчанию используется $GPG_PASSPHRASE.
+    gpg-passphrase: # необязательно
+    # Название платформы сборки для кэширования зависимостей. Это может быть "maven", "gradle" или "sbt".
+    кэш: # необязательно
+    # Путь к файлу зависимости: pom.xml, build.gradle, build.sbt и т. д. Этот параметр можно использовать вместе с параметром `cache`. Если этот параметр опущен, действие будет искать файл зависимости во всем репозитории. Этот параметр поддерживает подстановочные знаки и список имен файлов для кэширования нескольких зависимостей.
+    cache-dependency-path: # необязательно
+    # Временное решение для передачи статуса задания на этап постобработки задания. Эта переменная не предназначена для ручной настройки.
+    job-status: # необязательный параметр, по умолчанию ${{ job.status }}
+    # Токен, используемый для аутентификации при получении манифестов версий, размещенных на github.com, например, для сборки OpenJDK от Microsoft. При выполнении этого действия на github.com достаточно значения по умолчанию. При работе на GHES вы можете передать персональный токен доступа для github.com, если у вас возникают ограничения на количество запросов.
+    token: # необязательный, по умолчанию ${{ github.server_url == 'https://github.com' && github.token || '' }}
+    # Имя идентификатора цепочки инструментов Maven, если имя по умолчанию "${distribution}_${java-version}" не требуется. Примеры поддерживаемого синтаксиса см. в файле "Расширенное использование".
+    mvn-toolchain-id: # необязательно
+    # Имя поставщика инструментария Maven, если имя по умолчанию "${distribution}" не требуется. Примеры поддерживаемого синтаксиса см. в файле Advanced Usage.
+    mvn-toolchain-vendor: # необязательно
+          
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      digests: ${{ steps.hash.outputs.digests }}
+
+    steps:
+      - uses: actions/checkout@v4            - имя: Кэш
+  используется: actions/cache@v5.0.1
+  с:
+    # Список файлов, каталогов и шаблонов с подстановочными знаками для кэширования и восстановления
+    путь:
+    # Явный ключ для восстановления и сохранения кэша
+    ключ:
+    # Упорядоченная многострочная строка, содержащая список ключей, соответствующих префиксу, которые используются для восстановления устаревшего кэша, если для ключа не было попадания в кэш. Обратите внимание, что `cache-hit` в этом случае возвращает false.
+    restore-keys: # необязательно
+    # Размер фрагмента, используемый для разделения больших файлов во время загрузки, в байтах
+    upload-chunk-size: # необязательно
+    # Необязательный логический параметр. При включении позволяет средствам запуска приложений Windows сохранять или восстанавливать кэш, который можно восстановить или сохранить соответственно на других платформах.
+    enableCrossOsArchive: # необязательный параметр, по умолчанию false
+    # Завершение рабочего процесса, если запись в кэше не найдена
+    fail-on-cache-miss: # необязательный параметр, по умолчанию false
+    # Проверяем, существует ли запись в кэше для заданных входных данных (ключ, restore-keys) без загрузки кэша.
+    lookup-only: # необязательный параметр, по умолчанию false
+    # Выполните этап постобработки, чтобы сохранить кэш, даже если предыдущий этап завершился неудачей.
+    save-always: # необязательный параметр, по умолчанию false
+          
+
+      # ========================================================
+      #
+      # Step 1: Build your artifacts.
+      #
+      # ========================================================
+      - name: Build artifacts
+        run: |
+            # These are some amazing artifacts.
+            echo "artifact1" > artifact1
+            echo "artifact2" > artifact2
+
+      # ========================================================
+      #
+      # Step 2: Add a step to generate the provenance subjects
+      #         as shown below. Update the sha256 sum arguments
+      #         to include all binaries that you generate
+      #         provenance for.
+      #
+      # ========================================================
+      - name: Generate subject for provenance
+        id: hash
+        run: |
+          set -euo pipefail
+
+          # List the artifacts the provenance will refer to.
+          files=$(ls artifact*)
+          # Generate the subjects (base64 encoded).
+          echo "hashes=$(sha256sum $files | base64 -w0)" >> "${GITHUB_OUTPUT}"
+
+  provenance:
+    needs: [build]
+    permissions:
+      actions: read   # To read the workflow path.
+      id-token: write # To sign the provenance.
+      contents: write # To add assets to a release.
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v1.4.0
+    with:
+      base64-subjects: "${{ needs.build.outputs.digests }}"
+      upload-assets: true # Optional: Upload to a new release
+            - имя: Загрузить артефакт сборки
+  используется: actions/download-artifact@v7.0.0
+  с:
+    # Название загружаемого артефакта. Если не указано, загружаются все артефакты для данного запуска.
+    имя: # необязательно
+    # Идентификаторы артефактов для загрузки, разделенные запятыми. Можно использовать либо `artifact-ids`, либо `name`, но не оба одновременно.
+    artifact-ids: # необязательно
+    # Путь назначения. Поддерживается базовое расширение тильды. По умолчанию используется $GITHUB_WORKSPACE
+    путь: # необязательно
+    # Шаблон glob, соответствующий артефактам, которые следует загрузить. Игнорируется, если указано имя.
+    шаблон: # необязательный
+    # Если найдено несколько совпадений, это изменяет поведение целевых каталогов. Если true, загруженные артефакты будут находиться в том же каталоге, что и указанный путь. Если false, загруженные артефакты будут извлечены в отдельные именованные каталоги внутри указанного пути.
+    merge-multiple: # необязательный параметр, по умолчанию false
+    # Токен GitHub, используемый для аутентификации в API GitHub. Он необходим при загрузке артефактов из другого репозитория или из другого запуска рабочего процесса. Если он не указан, действие попытается загрузить артефакты из текущего репозитория и текущего запуска рабочего процесса.
+    github-token: # необязательный
+    # Владелец репозитория и имя репозитория, объединенные символом "/". Если указан github-token, это репозиторий, из которого будут загружаться артефакты.
+    репозиторий: # необязательно, по умолчанию ${{ github.repository }}
+    # Идентификатор запуска рабочего процесса, из которого был загружен желаемый артефакт для скачивания. Если указан github-token, то именно из этого запуска будут загружены артефакты.
+    run-id: # необязательный параметр, по умолчанию ${{ github.run_id }}
+          
